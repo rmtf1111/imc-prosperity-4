@@ -4,7 +4,7 @@ Team `rat_hunters` (United States) finished **#2** in Phase 2 of IMC Prosperity 
 
 ## Round 3 — Mean reversion
 
-**Algo PnL: +297,716** • **Algo rank for this round: #4**
+**Algo PnL: +297,716** • **Algo rank: #4**
 
 The first instinct for this round was to attempt some IV-based strategies. However, after realizing that the fluctuations in the IV accounted for $\pm 2$ moves in the price, we dropped the whole options business.
 
@@ -14,7 +14,7 @@ After this, Maxime started making positive PnL on both products with mean revers
 
 ## Round 4 — Mean reversion
 
-**Algo PnL: +221,170** • **Algo rank for this round: #20**
+**Algo PnL: +221,170** • **Algo rank: #3** • **Rank for this round only: #20**
 
 Round 4 de-anonymized the trade tape: every fill carried a counterparty ID. However, we did not find anything interesting so we did not use any bot behaviour.
 
@@ -26,7 +26,7 @@ However, we noticed that for `HYDROGEL_PACKS`, downward excursions had a median 
 
 ## Round 5 — The New Prosperity!
 
-**Algo PnL: +701,157** • **Algo rank for this round: #8**
+**Algo PnL: +701,157** • **Algo rank: #3** • **Rank for this round only: #8**
 
 After $5$ hours of sleep I woke up at $7$ am and the first thing I saw was our teammates on east coast saying we're in $2$nd place. There were also $50$ (fifty!) new products, split across $10$ sectors and each had $5$ products. Needless to say, against my best efforts, I couldn't go back to sleep. This wasn't just for fun anymore :) 
 
