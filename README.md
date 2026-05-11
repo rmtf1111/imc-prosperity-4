@@ -34,7 +34,16 @@ Another cool thing for Hydrogel Packs that we observed this round is that someti
 After 5 hours of sleep I woke up at 7 am and the first thing I saw were our teammates on east coast saying we're 2nd place. There were also 50 (fifty!) new products, split across 10 sectors and each had 5 respective products. Needless to say, against my best efforts, I couldn't go back to sleep. This wasn't just for fun anymore :) 
 
 ### Finding Nemo (Alpha).
-First thing first - we plotted were first-order (no pun intended) differences correlation within groups. Five minutes in, but these gave away all the alphas with the exception of one. 
+First thing first - we plotted were first-order (no pun intended) differences correlation within groups. Five minutes in, but these gave away all the alphas with the exception of one.
+
+<p align="center">
+  <img src="images/heatmap_pebbles.png" width="46%" alt="Purification Pebbles diff-correlation"/>
+  <img src="images/heatmap_robots.png" width="46%" alt="Domestic Robots diff-correlation"/>
+</p>
+<p align="center">
+  <img src="images/heatmap_oxygen_shakes.png" width="46%" alt="Liquid Breath Oxygen Shakes diff-correlation"/>
+  <img src="images/heatmap_snackpacks.png" width="46%" alt="Protein Snack Packs diff-correlation"/>
+</p>
 
 ### Microchips — within-family lead-lag
 
