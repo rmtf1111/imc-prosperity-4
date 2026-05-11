@@ -1,6 +1,6 @@
 # IMC Prosperity 4
 
-Team `rat_hunters` (United States) finished **#2** in Phase 2 of IMC Prosperity 4, with cumulative Phase-2 PnL of 1,459,764 XIRECs (Algo 1,220,042 + Manual 239,722). On the algorithmic challenge alone, we finished #3 globally at a 500 XIRECs difference from second place on algo.
+Our team, `rat_hunters` finished **#2** in IMC Prosperity 4, with a cumulative Phase-2 PnL of 1,459,764 XIRECs (Algo 1,220,042 + Manual 239,722). On the algorithmic challenge alone, we finished #3 globally at a 500 XIRECs difference from second place on algo.
 
 ## Round 3 — Mean reversion
 
@@ -48,7 +48,7 @@ Another interesting correlation finding was that Snackpacks as a sector was corr
 
 We noticed that Pebbles' prices summed up to 50,000 consistently with the exception of some steps where the sum deviated by ±15 and reverted immediately in the next tick. We found that it was rarely profitable to take a position on these deviations due to the spread. We realized that Market Making is a risk-free strategy here due to the bots always trading the same quantities at the same timestamps for all the pebbles simultaneously. We netted around 18k/day with Market Making and taking at the deviations when it was profitable, accounting for the spread.
 
-### Snackpacks
+### Snackpacks - pairs trading
 
 The very high negative correlation between `SNACKPACK_VANILLA`/`SNACKPACK_CHOCOLATE` might signal cointegration. However, if you ran ADF, the reported p-value was quite large. In particular, while high correlation can signal cointegration, it does not necessarily imply it. In fact, very high correlation probably rules out pairs trading - think about a stock that always copies or reverts the move of another one. Not too tradeable IMHO.
 
@@ -56,7 +56,7 @@ We found that the `SNACKPACK_VANILLA − SNACKPACK_RASPBERRY` spread is the clea
 
 ### Lattice movements - the bread-winner
 
-`ROBOT_DISHES`, `ROBOT_IRONING`, `OXYGEN_SHAKE_EVENING_BREATH`, and `OXYGEN_SHAKE_CHOCOLATE` exhibited a discrete-grid micro-structure: mid mostly walked in small ticks, but occasionally it started moving by ±100 positions. This could've been explained by the fact that the mid price was rounded to a point on a 100-wide lattice. By standard martingale arguments this would've implied that after a 100 swing one way the next swing would most likely be in the opposite direction. A quick empirical check confirmed this - after the price moved by ±100, the next move was ∓100 with 85% chance. The strategy at this point is trivial - whenever the price moves by +100 sell till full inventory and when it moves by -100, buy till full inventory.
+`ROBOT_DISHES`, `ROBOT_IRONING`, `OXYGEN_SHAKE_EVENING_BREATH`, and `OXYGEN_SHAKE_CHOCOLATE` exhibited a discrete-grid micro-structure: mid mostly walked in small ticks, but occasionally it started moving by ±100 positions. This could've been explained by the fact that the mid price was rounded to a point on a 100-wide lattice. By standard martingale arguments this would've implied that after a 100 swing one way the next swing would most likely be in the opposite direction. A quick empirical check confirmed this - after the price moved by ±100, the next move was ∓100, respectively, with 85% chance. The strategy at this point is trivial - whenever the price moves by +100 sell full inventory and when it moves by -100, buy full inventory.
 
 ### Microchips — within-family lead-lag
 
@@ -94,10 +94,10 @@ To be fair our manual was not the brightest, so we will keep it short.
 ### Round 4 - Options +65,024
 We did Markowitz and looked at the PnL graph against the std for various values of the regularizer lambda. Then, we picked the lambda where the derivative started to get smaller - i.e. where we were trading off more PnL for less std. Did not spend too much time on this, hence the rather straightforward and naive strategy. 
 
-***Interesting stuff:*** However, we realized afterwards that this round is amazing. Due to the extreme variance, around 30% of the seeds would've resulted in the most popular (max-EV) solution either gaining or losing 500k. No one who puts this much effort into making a competition as IMC does would let this kind of noise simply randomize the top ranks. Hence, you definitely could've expected that the seed would've been changed once, twice or a few times. This radically changes the outcome of any strategy, especially that you know which "randomness" is the "bad randomness". And I think this aspect is great, because IRL you should never believe someone who tells you that a stock price is a geometric brownian motion. Humans move the price with their actions, just how the mods have the final say on which seed gets used :) 
+***Interesting stuff:*** However, we realized afterwards that this round is amazing. Due to the extreme variance, around 30% of the seeds would've resulted in the most popular (max-EV) solution either gaining or losing 500k. No one who puts this much effort into making a competition as IMC does would let this kind of noise simply randomize the top ranks. Hence, you definitely could've expected that the seed would've been changed once, twice or a few times till the admins saw an acceptable results distribution. This radically changes the outcome of any strategy, especially that you know which "randomness" is the "bad randomness". And I think this aspect is great, because IRL you should never believe someone who tells you that a stock price is a geometric brownian motion. Humans move the price with their actions, just how the admins have the final say on which seed gets used :) 
 
-Also, it's amazing that Manual could've finally been of importance for the general challenge. 
+Also, it's amazing that Manual could've finally been of importance for the overall challenge. 
 
 ### Round 5 - News +104,014
-For this round just look up the news from last year that you can find on the internet and try to pattern match. You should be able to recover the movements from most of last years since they are publicly available too. Then assume everyone is already doing that and don't overthink too much - the price moves based on what other contestants do too (don't forget to read the wiki).
+For this round just look up the news from last years that you can find on the internet and try to pattern match. You should be able to recover the movements from most of last years since they are publicly available too. Then assume everyone is already doing that and don't overthink too much - the price moves based on what other contestants do too (don't forget to read the wiki).
 
