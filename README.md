@@ -2,33 +2,39 @@
 
 Team `rat_hunters` (United States) finished **#2** in Phase 2 of IMC Prosperity 4, with cumulative Phase-2 PnL of **1,459,764 SeaShells** (Algo 1,220,042 + Manual 239,722). On the algorithmic challenge alone, we finished **#3 globally**, at a `500` XIRECs delta from the second place on algo.
 
-## Round 3 — Fixed-fair mean reversion
+## Round 3 — Mean reversion
 
 **Algo PnL: +297,716** • **Algo rank for this round: #4**
 
-The first instinct for this round was to attempt some IV-based strategies. The only strike price with a somewhat interesting pattern was VEV_5000. This was the only strike price where the IV had standard deviation that looked significant. However, after realizing that these standard deviations in the EV accounted for +- 2 moves in the price, we dropped the whole IV business. P.S: smile was quite useless too - it only told us that the 5400 strike price was systematically underpriced, which, unfortuntely, isn't tradeable by itself. 
+The first instinct for this round was to attempt some IV-based strategies. However, after realizing that the fluctuations in the IV accounted for +- 2 moves in the price, we dropped the whole options business.
 
-After this Maxime started making positive PnL on both products with mean reversion and then it hit me - this is Prosperity, mean reversion MUST be the answer to all your problems (until Round 5). Moreover, if Velvet was mean reverting, this implied that we can double down on its predictable movement with its options. A quick analysis on Velvet and Hydrogel showed that they have negative autocorrelation, which could be explained by mean-reversion. Then, some random stats tests were giving astronomically low p-values and also the graphs looked mean-reverting. If it smells like MR, looks like MR and walks like MR, it probably is MR.
+After this, Maxime started making positive PnL on both products with mean reversion and then it hit me - this is Prosperity, mean reversion MUST be the answer to all your problems. A quick analysis on Velvet and Hydrogel showed that they have negative autocorrelation, which could be explained by mean-reversion. If it looks like MR, walks like MR and it's Prosperity, it probably is MR.
 
-Now, for the actual submitted strategy. While it probably sounds too simple, these two paragraphs might be the most important ones of the entire writeup. Our strategy for the two products was exactly the same - find a fair value (for Velvet: `5250`,  for Hydrogel: `9990`); find a threshold for the deviation when to enter a position (for Velvet: `28`, for Hydrogel: `40`); when the price crosses that threshold, start buying or selling till filling up your inventory. We had no liquidation upon reversion, just buy at lows and sell at highs (and of course, for Velvet, do the same for its respective options). 100 lines of code. 
-
-The amount of overfitting reported in discord is actually insane - z-scores, bellinger (?), EMA, blah blah. Before implementing any of these you should have a solid reason. For example, if you take a rolling mean as your "fair price" and plot the residuals you will find that the later is also mean reverting. However, this holds true for almost any series under the sun :). You would need a more rigorous analysis to claim that a local mean-reversion would be more profitable than a global mean-reversion that would necessarily have to include the stability of the rolling mean. You should really think what you are trading here - you are betting that the current price is too high for whatever happened in the past 100 ticks, and that it is going to revert in say 1000 ticks. Then you are selling now, and then in 1000 ticks you would want to buy back because the rolling mean in 900 ticks will be lower than the price in 1000 ticks? There was no statistics to confirm that. Needless to say, I am not claiming that local-mean reversion is bad, all I am trying to communicate is that there needs to be concrete reasoning and logic to back this up. Better backtest results is not logic, it's just a number :) 
+***Strategy:*** Our strategy for the two products was exactly the same - find a fair value (for Velvet: `5250`,  for Hydrogel: `9990`); find a symmetric threshold for the deviation from fair value when to enter a position (for Velvet: `28`, for Hydrogel: `40`); when the price crosses `fair +- threshold` send a signal to fill up your position respectively (this could take a few ticks). We had no liquidation upon reversion, just buy at lows and sell at highs (and of course, for Velvet, do the same for its respective options). 100 lines of code. 
 
 ~ add plots for threshold selection
-## Round 4 — Counterparty classification
+## Round 4 — Mean reversion
 
 **Algo PnL: +221,170** • **Algo rank for this round: #20**
 
-Round 4 de-anonymized the trade tape: every fill carried a counterparty ID. The only Mark that we found interesting was Mark 67, the other ones were either doing MM, shorting options or donating their XIRECs. In particular, when Mark 67 bought the mid-price moved up in the next tick, however, we realized that this was due to the best ask going up, as opposed to having a real true price movement. We never used bid/ask walls, so maybe that wasn't even observed and Mark 67's trade were just random when using a better indicator for the true price. We did not include any bot logic in our submission for this round :) 
+Round 4 de-anonymized the trade tape: every fill carried a counterparty ID. The only Mark that we found interesting was Mark 67, the other ones were either doing MM, shorting options or donating their XIRECs. In particular, when Mark 67 bought the mid-price moved up in the next tick, however, we realized that this was due to the best ask going up, as opposed to having a real true price movement. We never used bid/ask walls, so maybe that wasn't even observed and Mark 67's trade were just random when using a better indicator for the true price. We did not include any bot logic in our submission for this round.
 
-One thing we noticed in our analysis is that we had a severe logic gap for Hydrogel Pack. We took the fair price to be `9990`, but we observed that the up excursions were much deeper than the down excursions - the median was `40` for up excursion and `20` for down excursion. This pointed at a different threshold for when to buy low and when to sell high. Clearly, this also meant that the "fair price" was probably `10000` and maybe that was the overall mean or median of the series (we did not check :p). Needless to say, this part is quite embarassing. We fixed the thresholds, and with a sweep, we found that setting the buy threshold at `8` and sell at `40` worked well. 
-**Despite being ranked #4 and #20 for Algo Round 3 and 4, we still ended up at #3 for Algo when combining the two rounds. I wonder why...**
+One thing we noticed in our analysis is that we had a severe logic gap for Hydrogel Pack. We took the fair price to be `9990`, but we observed that the up excursions were much deeper than the down excursions - the median was `40` for up excursion and `20` for down excursion. This pointed at a different threshold for when to buy low and when to sell high. Clearly, this also meant that the "fair price" was probably `10000` and maybe that was the overall mean or median of the series (we did not check :p). Needless to say, this part is quite embarassing.
 
-## Round 5 — Strategy ensemble
+Another cool thing for Hydrogel Packs that we observed this round is that sometimes the bid/ask spread would tighten for a tick from 16 to 8, and that this would happen because just one side (either bid or ask) moved by 8. We added some logic around that which resumed to entering long/short position based on the bid and the ask. This did not result in any extra PnL for days 0,1,2,3 but it was clearly a better execution choice so we included it. I suppose we reverse engineered something that could've been avoided via the bid/ask wall - should've read Timo's repo.
+
+***Strategy:*** Same as round 3, except introduced asymmetric thresholds for Hydrogel Packs - we used buy threshold at `-8` from fair and sell at `+40` from fair price. Additionally, we corrected the mid_price in cases when the spread was tighter than usual.
+
+**P.S: Despite being ranked #4 and #20 for Algo Round 3 and 4, we still ended up at #3 for Algo when combining the two rounds. I wonder why ;)**
+
+## Round 5 — 
 
 **Algo PnL: +701,157** • **Algo rank for this round: #8**
 
-Round 5 added 50 new products in 10 families with a uniform position limit of 10, fully anonymized trades, and no conversions or observations — none of the R3/R4 frameworks transfer. `final_one.py` runs five independent strategies in parallel inside a single `Trader.run`. Detailed analyses live in `ROUND5/analysis/{microchips,oxygen_shakes,robots,snackpacks,pebbles}.ipynb`.
+After 5 hours of sleep I woke up at 7 am and the first thing I saw were our teammates on east coast saying we're 2nd place. There were also 50 (fifty!) new products, split across 10 sectors and each had 5 respective products. Needless to say, against my best efforts, I couldn't go back to sleep. This wasn't just for fun anymore :) 
+
+### Finding Nemo (Alpha).
+First thing first - we plotted were first-order (no pun intended) differences correlation within groups. Five minutes in, but these gave away all the alphas with the exception of one. 
 
 ### Microchips — within-family lead-lag
 
@@ -49,6 +55,13 @@ The `SNACKPACK_VANILLA − SNACKPACK_RASPBERRY` spread is the cleanest mean-reve
 ### General market making
 
 Every Round 5 product that isn't claimed by the four strategies above (and isn't already in `result`) gets a vanilla two-sided passive MM: post `(best_bid + 1, best_ask − 1)` with size = remaining position room on each side, skipping when the resulting bid would cross the ask. The exclusion set in `PROB_MM_EXCLUDED` ensures the MM layer never fights another strategy on the same product. Across the ~30 unmanaged products this is the workhorse — small, robust, and unrelated to any specific signal.
+
+## Overfitting
+
+### Round 3 and 4
+I want to mention that the amount of overfitting reported in discord was actually insane - z-scores, bellinger (?), EMA, blah blah. Before implementing any of these you should have a solid reason. For example, if you take a rolling mean as your "fair price" and plot the residuals you will find that the later was also mean reverting. However, this holds true for almost any time series under the sun :). You would need a more rigorous analysis to claim that a local mean-reversion would be more profitable than a global mean-reversion that would necessarily have to include the stability of the rolling mean. You should really think what you are trading here - you are betting that the current price is too high for whatever happened in the past 100 ticks, and that it is going to revert in say 1000 ticks. Then you are selling now, and then in 1000 ticks you would want to buy back because the rolling mean in 900 ticks will be lower than the price in 1000 ticks? There was no statistics to confirm that. Needless to say, I am not claiming that local-mean reversion is bad, all I am trying to communicate is that there needs to be concrete reasoning and logic to back this up. Better backtest results is not logic, it's just a number :) 
+
+### Round 5
 
 ## Manual
 
