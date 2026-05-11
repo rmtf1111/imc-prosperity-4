@@ -25,7 +25,7 @@ However, we noticed that Hydrogel Pack's downward excursions had a median peak o
 
 **P.S: Despite being ranked #4 and #20 for Algo Round 3 and 4, we still ended up at #3 for Algo when combining the two rounds. I wonder why ;)**
 
-## Round 5 — 
+## Round 5 — The New Prosperity!
 
 **Algo PnL: +701,157** • **Algo rank for this round: #8**
 
