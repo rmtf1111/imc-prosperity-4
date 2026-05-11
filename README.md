@@ -17,13 +17,11 @@ After this, Maxime started making positive PnL on both products with mean revers
 
 **Algo PnL: +221,170** • **Algo rank for this round: #20**
 
-Round 4 de-anonymized the trade tape: every fill carried a counterparty ID. The only Mark that we found interesting was Mark 67, the other ones were either doing MM, shorting options or donating their XIRECs. In particular, when Mark 67 bought the mid-price moved up in the next tick, however, we realized that this was due to the best ask going up, as opposed to having a real true price movement. We never used bid/ask walls, so maybe that wasn't even observed and Mark 67's trade were just random when using a better indicator for the true price. We did not include any bot logic in our submission for this round.
+Round 4 de-anonymized the trade tape: every fill carried a counterparty ID. However, we did not find anything interesting so we did not use any bot behaviour.
 
-One thing we noticed in our analysis is that we had a severe logic gap for Hydrogel Pack. We took the fair price to be `9990`, but we observed that the up excursions were much deeper than the down excursions - the median was `40` for up excursion and `20` for down excursion. This pointed at a different threshold for when to buy low and when to sell high. Clearly, this also meant that the "fair price" was probably `10000` and maybe that was the overall mean or median of the series (we did not check :p). Needless to say, this part is quite embarassing.
+However, we noticed that Hydrogel Pack's downward excursions had a median peak of 20, while upward excursions had a median peak of 40. This meant that symmetric thresholds were suboptimal.
 
-Another cool thing for Hydrogel Packs that we observed this round is that sometimes the bid/ask spread would tighten for a tick from 16 to 8, and that this would happen because just one side (either bid or ask) moved by 8. We added some logic around that which resumed to entering long/short position based on the bid and the ask. This did not result in any extra PnL for days 0,1,2,3 but it was clearly a better execution choice so we included it. I suppose we reverse engineered something that could've been avoided via the bid/ask wall - should've read Timo's repo.
-
-***Strategy:*** Same as round 3, except introduced asymmetric thresholds for Hydrogel Packs - we used buy threshold at `-8` from fair and sell at `+40` from fair price. Additionally, we corrected the mid_price in cases when the spread was tighter than usual.
+***Strategy:*** Same as round 3, except we introduced asymmetric thresholds for Hydrogel Packs - we used buy threshold at `-8` from fair and sell at `+40` from fair price. 
 
 **P.S: Despite being ranked #4 and #20 for Algo Round 3 and 4, we still ended up at #3 for Algo when combining the two rounds. I wonder why ;)**
 
@@ -34,7 +32,7 @@ Another cool thing for Hydrogel Packs that we observed this round is that someti
 After 5 hours of sleep I woke up at 7 am and the first thing I saw were our teammates on east coast saying we're 2nd place. There were also 50 (fifty!) new products, split across 10 sectors and each had 5 respective products. Needless to say, against my best efforts, I couldn't go back to sleep. This wasn't just for fun anymore :) 
 
 ### Finding Nemo (Alpha).
-First thing first - we plotted were first-order (no pun intended) differences correlation within groups. Five minutes in, but these gave away all the alphas with the exception of one.
+First thing first - we plotted first-order differences correlations within groups. This gave away almost all the alphas and the products we worked on the first day of Round 5. Below are the heatmaps that had anything significant.
 
 <p align="center">
   <img src="images/heatmap_pebbles.png" width="46%" alt="Purification Pebbles diff-correlation"/>
@@ -45,32 +43,39 @@ First thing first - we plotted were first-order (no pun intended) differences co
   <img src="images/heatmap_snackpacks.png" width="46%" alt="Protein Snack Packs diff-correlation"/>
 </p>
 
+Another interesting correlation fact was that Snackpacks as a sector was correlated with the rest of the market (and it was quite significant, at 0.22 correlation for first-order differences). Unfortunately, we did not have the time to explore this direction.
+
+### Pebbles — basket arbitrage
+
+We noticed that Pebbles' prices summed up to 50,000 consistently with the exception of some steps where it deviated by +-15 and reverted immediately in the next tick. We found that it was rarely profitable to take a position on these deviations due to the spread. We realized that Market Making is a risk-free strategy here due to the bots always trading the same quantities at the same timestamps for all the pebbles simultaneously. We netted around 18k/day with Market Making and taking at the deviations when it was profitable accounting for the spread.
+
+### Snackpacks
+
+The very high negative correlation between Vanilla/Chocolate might signal cointegration. However, if you ran ADF, the reported p-value was quite large. In particular, while high correlation can be signaled by cointegration, it does not necessarily imply it. In fact, very high correlation probably rules out pairs trading - think about a stock that always copies or reverts the move of another one. Not too tradeable IMHO.
+
+We found that `SNACKPACK_VANILLA − SNACKPACK_RASPBERRY` spread is the cleanest mean-reverting signal in the family - second-to-best ADF p-value, median almost 0, and also ties together all the products. When the spread crosses `±100` we sent a signal to fill up our positions. Since Chocolate was so negatively correlated with Vanilla and Strawberry with Raspberry, we used the Vanilla-Raspberry signal to also go on a respective Strawberry-Chocolate position. Pistachio was treated as an "excluded" product that we used market making on.
+
+### Lattice movements - the bread-winner
+
+`ROBOT_DISHES`, `ROBOT_IRONING`, `OXYGEN_SHAKE_EVENING_BREATH`, and `OXYGEN_SHAKE_CHOCOLATE` exhibit a discrete-grid micro-structure: mid mostly walks in small ticks, but occasionally **snaps by ≥ 95 units** to a new level on a 10-unit grid. The snaps mean-revert. The strategy rounds mid to a 10-unit grid, detects a grid jump of ≥ 95, and immediately walks the book to `−sign(jump) × 10` (full short on a big up-snap, full long on a big down-snap). The position is held through `hundred_snap` regime until one small grid move in either direction (the revert), then flattened. Outside the snap regime the strategy reverts to passive market-making (post one tick inside the L1 quotes). A stale-counter (1000 ticks without a jump) forcibly clears the signal so a long-quiet product doesn't carry a leftover position.
+
 ### Microchips — within-family lead-lag
 
 The Microchip family is the only Round 5 group where a clean integer-lag signal exists between products. Three rules vote into target positions: `CIRCLE` leads `OVAL` and `RECTANGLE`, and `OVAL` leads `TRIANGLE`. Each rule stores a rolling history of the leader's mid; when the leader's value moves by more than `T` over a window of `W` ticks, a `±1` signal is latched on the follower for `H` ticks (or until the leader flips). Parameters `(W, H, T)` are tuned per pair (e.g. `200/200/110` for circle→oval); votes across rules are summed before targeting `±10` or `0`. Same-direction re-fires reset the hold counter so a sustained lead extends the position.
 
-### Lattice products — snap-fade with passive MM fallback
-
-`ROBOT_DISHES`, `ROBOT_IRONING`, `OXYGEN_SHAKE_EVENING_BREATH`, and `OXYGEN_SHAKE_CHOCOLATE` exhibit a discrete-grid micro-structure: mid mostly walks in small ticks, but occasionally **snaps by ≥ 95 units** to a new level on a 10-unit grid. The snaps mean-revert. The strategy rounds mid to a 10-unit grid, detects a grid jump of ≥ 95, and immediately walks the book to `−sign(jump) × 10` (full short on a big up-snap, full long on a big down-snap). The position is held through `hundred_snap` regime until one small grid move in either direction (the revert), then flattened. Outside the snap regime the strategy reverts to passive market-making (post one tick inside the L1 quotes). A stale-counter (1000 ticks without a jump) forcibly clears the signal so a long-quiet product doesn't carry a leftover position.
-
-### Snackpacks — 4-way relative-value pair
-
-The `SNACKPACK_VANILLA − SNACKPACK_RASPBERRY` spread is the cleanest mean-reverting signal in the family. When the spread crosses `±100`, all four traded snackpacks are positioned simultaneously: vanilla and strawberry on one side, raspberry and chocolate on the other (signs flip with the spread direction). Targets are `±10` on every leg; orders walk the book aggressively to reach them. The signal is latched (carry positions while the spread sits beyond the threshold) and flips on the opposite-side crossing. Pistachio is excluded — it didn't cointegrate cleanly with the others in the notebook analysis.
-
-### Pebbles — basket arbitrage with MM fallback
-
-`PEBBLES_{XS, S, M, L, XL}` collectively trade with `sum(mids) ≈ 50,000` (the notebook confirms ≈100% of the sample sits within ±15 of that). The strategy looks for deviations in the **executable** basket: if the sum of the five best asks falls below 50,000 **and** we are currently short XL (or any unwound state where buying back is profitable), buy one share of every leg at the ask; symmetrically sell into the basket when the bid-sum exceeds 50,000. Size is the min of available L1 volume across all five legs and the position room created by the current state. When the basket isn't off, the strategy reverts to per-leg passive MM one tick inside the L1 quotes — Pebbles are well-behaved tight-spread products and the passive quotes pick up flow without the basket signal needing to fire.
-
 ### General market making
 
-Every Round 5 product that isn't claimed by the four strategies above (and isn't already in `result`) gets a vanilla two-sided passive MM: post `(best_bid + 1, best_ask − 1)` with size = remaining position room on each side, skipping when the resulting bid would cross the ask. The exclusion set in `PROB_MM_EXCLUDED` ensures the MM layer never fights another strategy on the same product. Across the ~30 unmanaged products this is the workhorse — small, robust, and unrelated to any specific signal.
+Every Round 5 product that isn't claimed by the four strategies above gets a basic two-sided passive MM: post `(best_bid + 1, best_ask − 1)`. The exclusion set in `PROB_MM_EXCLUDED` ensures the MM layer never fights another strategy when the logic was getting too messy. One thing to mention about MM is that all products got traded at the same time, in the same quantities and in the same directions. Hence, we exposed ourselves to the overall movements of the market. However, we found the market to be overall stable, and we were equally exposed to gaining from directionality as we were to losing, so it seemed sensible to keep market making.
 
 ## Overfitting
 
 ### Round 3 and 4
-I want to mention that the amount of overfitting reported in discord was actually insane - z-scores, bellinger (?), EMA, blah blah. Before implementing any of these you should have a solid reason. For example, if you take a rolling mean as your "fair price" and plot the residuals you will find that the later was also mean reverting. However, this holds true for almost any time series under the sun :). You would need a more rigorous analysis to claim that a local mean-reversion would be more profitable than a global mean-reversion that would necessarily have to include the stability of the rolling mean. You should really think what you are trading here - you are betting that the current price is too high for whatever happened in the past 100 ticks, and that it is going to revert in say 1000 ticks. Then you are selling now, and then in 1000 ticks you would want to buy back because the rolling mean in 900 ticks will be lower than the price in 1000 ticks? There was no statistics to confirm that. Needless to say, I am not claiming that local-mean reversion is bad, all I am trying to communicate is that there needs to be concrete reasoning and logic to back this up. Better backtest results is not logic, it's just a number :) 
+I want to mention that the amount of overfitting reported in discord was actually insane - z-scores, bellinger (?), EMA, blah blah. Before implementing any of these you should have a solid reason. For example, if you take a rolling mean as your "fair price" and plot the residuals you will find that the later was also mean reverting. However, this holds true for almost any time series under the sun :). You would need a more rigorous analysis to claim that a local mean-reversion would be more profitable than a global mean-reversion that would necessarily have to include the stability of the rolling mean. 
+
+You should really think what you are trading here - you are betting that the current price is too high for whatever happened in the past 100 ticks, and that it is going to revert, in say 1000 ticks. Then you are selling now, and then in 1000 ticks you would want to buy back because the rolling mean in 900 ticks will be lower than the price in 1000 ticks? There was no statistics to confirm that. Needless to say, I am not claiming that local-mean reversion is bad, all I am trying to communicate is that there needs to be concrete reasoning and logic to back this up. Better backtest results is not logic, it's just a number :) 
 
 ### Round 5
+
 
 ## Manual
 
