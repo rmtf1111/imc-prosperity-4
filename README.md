@@ -8,9 +8,9 @@ Team `rat_hunters` (United States) finished **#2** in Phase 2 of IMC Prosperity 
 
 The first instinct for this round was to attempt some IV-based strategies. However, after realizing that the fluctuations in the IV accounted for +- 2 moves in the price, we dropped the whole options business.
 
-After this, Maxime started making positive PnL on both products with mean reversion and then it hit me - this is Prosperity, mean reversion MUST be the answer to all your problems. A quick analysis on Velvet and Hydrogel showed that they have negative autocorrelation, which could be explained by mean-reversion. If it looks like MR, walks like MR and it's Prosperity, it probably is MR.
+After this, Maxime started making positive PnL on both products with mean reversion and then it hit me - this is Prosperity, mean reversion MUST be the answer to all your problems. A quick analysis on `VELVET_FRUIT` and `HYDROGEL_PACKS` showed that they have negative autocorrelation, which could be explained by mean-reversion. If it looks like MR, walks like MR and it's Prosperity, it probably is MR.
 
-***Strategy:*** Our strategy for the two products was exactly the same - find a fair value (for Velvet: `5250`,  for Hydrogel: `9990`); find a symmetric threshold for the deviation from fair value when to enter a position (for Velvet: `28`, for Hydrogel: `40`); when the price crosses `fair +- threshold` send a signal to fill up your position respectively (this could take a few ticks). We had no liquidation upon reversion, just buy at lows and sell at highs (and of course, for Velvet, do the same for its respective options). 100 lines of code. 
+***Strategy:*** Our strategy for the two products was exactly the same - find a fair value (for `VELVET_FRUIT`: `5250`, for `HYDROGEL_PACKS`: `9990`); find a symmetric threshold for the deviation from fair value when to enter a position (for `VELVET_FRUIT`: `28`, for `HYDROGEL_PACKS`: `40`); when the price crosses `fair +- threshold` send a signal to fill up your position respectively (this could take a few ticks). We had no liquidation upon reversion, just buy at lows and sell at highs (and of course, for `VELVET_FRUIT`, do the same for its respective options). 100 lines of code. 
 
 ## Round 4 — Mean reversion
 
@@ -18,9 +18,9 @@ After this, Maxime started making positive PnL on both products with mean revers
 
 Round 4 de-anonymized the trade tape: every fill carried a counterparty ID. However, we did not find anything interesting so we did not use any bot behaviour.
 
-However, we noticed that Hydrogel Pack's downward excursions had a median peak of 20, while upward excursions had a median peak of 40. This meant that symmetric thresholds were suboptimal.
+However, we noticed that `HYDROGEL_PACKS` downward excursions had a median peak of 20, while upward excursions had a median peak of 40. This meant that symmetric thresholds were suboptimal.
 
-***Strategy:*** Same as round 3, except we introduced asymmetric thresholds for Hydrogel Packs - we used buy threshold at `-8` from fair and sell at `+40` from fair price. 
+***Strategy:*** Same as round 3, except we introduced asymmetric thresholds for `HYDROGEL_PACKS` - we used buy threshold at `-8` from fair and sell at `+40` from fair price. 
 
 **P.S: Despite being ranked #4 and #20 for Algo Round 3 and 4, we still ended up at #3 for Algo when combining the two rounds. I wonder why ;)**
 
@@ -50,9 +50,9 @@ We noticed that Pebbles' prices summed up to 50,000 consistently with the except
 
 ### Snackpacks
 
-The very high negative correlation between Vanilla/Chocolate might signal cointegration. However, if you ran ADF, the reported p-value was quite large. In particular, while high correlation can be signaled by cointegration, it does not necessarily imply it. In fact, very high correlation probably rules out pairs trading - think about a stock that always copies or reverts the move of another one. Not too tradeable IMHO.
+The very high negative correlation between `SNACKPACK_VANILLA`/`SNACKPACK_CHOCOLATE` might signal cointegration. However, if you ran ADF, the reported p-value was quite large. In particular, while high correlation can be signaled by cointegration, it does not necessarily imply it. In fact, very high correlation probably rules out pairs trading - think about a stock that always copies or reverts the move of another one. Not too tradeable IMHO.
 
-We found that `SNACKPACK_VANILLA − SNACKPACK_RASPBERRY` spread is the cleanest mean-reverting signal in the family - second-to-best ADF p-value, median almost 0, and also ties together all the products. When the spread crosses `±100` we sent a signal to fill up our positions. Since Chocolate was so negatively correlated with Vanilla and Strawberry with Raspberry, we used the Vanilla-Raspberry signal to also go on a respective Strawberry-Chocolate position. Pistachio was treated as an "excluded" product that we used market making on.
+We found that `SNACKPACK_VANILLA − SNACKPACK_RASPBERRY` spread is the cleanest mean-reverting signal in the family - second-to-best ADF p-value, median almost 0, and also ties together all the products. When the spread crosses `±100` we sent a signal to fill up our positions. Since `SNACKPACK_CHOCOLATE` was so negatively correlated with `SNACKPACK_VANILLA` and `SNACKPACK_STRAWBERRY` with `SNACKPACK_RASPBERRY`, we used the `SNACKPACK_VANILLA`-`SNACKPACK_RASPBERRY` signal to also go on a respective `SNACKPACK_STRAWBERRY`-`SNACKPACK_CHOCOLATE` position. `SNACKPACK_PISTACHIO` was treated as an "excluded" product that we used market making on.
 
 ### Lattice movements - the bread-winner
 
@@ -60,7 +60,7 @@ We found that `SNACKPACK_VANILLA − SNACKPACK_RASPBERRY` spread is the cleanest
 
 ### Microchips — within-family lead-lag
 
-The Microchip family is the only Round 5 group where a clean integer-lag signal exists between products. Oval, Square, Rectangle and Triangle all followed Circle at a 50, 100, 150 and 200 lag, respectively. The correlation was rather weak - around 0.05. However, when aggregated over multiple steps it could've been a tradeable signal. To our surprise, when aggregating multiple difference, i.e. looking at rectangle_{t+300} - tectangle_{t+150} and circle_{t+150} - circle_t, the correlation jumped to 0.15. This should not happen if there was no other hidden structure for this family. We searched hard for the other systematic pattern, but failed to find it. For unfounded reasons we resorted to overfitting - we aggregated the price difference over larger windows than what was logical (i.e, looked at circle_{t+200} - circle_t to predict rectangle_{t+400} - rectangle_{t+200}) and sweeped for thresholds. Needless to say, we netted an embarassing -25k on microchips as a group. Nonetheless, this was the most fun asset (class) of all of Prosperity - it really made us think and write down math. I would come back next year just for a round where we get another chance to trade such products.
+The Microchip family is the only Round 5 group where a clean integer-lag signal exists between products. `MICROCHIP_OVAL`, `MICROCHIP_SQUARE`, `MICROCHIP_RECTANGLE` and `MICROCHIP_TRIANGLE` all followed `MICROCHIP_CIRCLE` at a 50, 100, 150 and 200 lag, respectively. The correlation was rather weak - around 0.05. However, when aggregated over multiple steps it could've been a tradeable signal. To our surprise, when aggregating multiple difference, i.e. looking at `MICROCHIP_RECTANGLE_{t+300} - MICROCHIP_RECTANGLE_{t+150}` and `MICROCHIP_CIRCLE_{t+150} - MICROCHIP_CIRCLE_t`, the correlation jumped to 0.15. This should not happen if there was no other hidden structure for this family. We searched hard for the other systematic pattern, but failed to find it. For unfounded reasons we resorted to overfitting - we aggregated the price difference over larger windows than what was logical (i.e, looked at `MICROCHIP_CIRCLE_{t+200} - MICROCHIP_CIRCLE_t` to predict `MICROCHIP_RECTANGLE_{t+400} - MICROCHIP_RECTANGLE_{t+200}`) and sweeped for thresholds. Needless to say, we netted an embarassing -25k on microchips as a group. Nonetheless, this was the most fun asset (class) of all of Prosperity - it really made us think and write down math. I would come back next year just for a round where we get another chance to trade such products.
 
 ### General market making
 
