@@ -1,6 +1,6 @@
 # IMC Prosperity 4
 
-Team `rat_hunters` (United States) finished **#2** in Phase 2 of IMC Prosperity 4, with cumulative Phase-2 PnL of **1,459,764 SeaShells** (Algo 1,220,042 + Manual 239,722). On the algorithmic challenge alone, we finished **#3 globally**, at a `500` XIRECs delta from the second place on algo.
+Team `rat_hunters` (United States) finished **#2** in Phase 2 of IMC Prosperity 4, with cumulative Phase-2 PnL of 1,459,764 XIRECs (Algo 1,220,042 + Manual 239,722). On the algorithmic challenge alone, we finished #3 globally at a 500 XIRECs difference from the second place on algo.
 
 ## Round 3 — Mean reversion
 
@@ -12,7 +12,6 @@ After this, Maxime started making positive PnL on both products with mean revers
 
 ***Strategy:*** Our strategy for the two products was exactly the same - find a fair value (for Velvet: `5250`,  for Hydrogel: `9990`); find a symmetric threshold for the deviation from fair value when to enter a position (for Velvet: `28`, for Hydrogel: `40`); when the price crosses `fair +- threshold` send a signal to fill up your position respectively (this could take a few ticks). We had no liquidation upon reversion, just buy at lows and sell at highs (and of course, for Velvet, do the same for its respective options). 100 lines of code. 
 
-~ add plots for threshold selection
 ## Round 4 — Mean reversion
 
 **Algo PnL: +221,170** • **Algo rank for this round: #20**
@@ -57,11 +56,11 @@ We found that `SNACKPACK_VANILLA − SNACKPACK_RASPBERRY` spread is the cleanest
 
 ### Lattice movements - the bread-winner
 
-`ROBOT_DISHES`, `ROBOT_IRONING`, `OXYGEN_SHAKE_EVENING_BREATH`, and `OXYGEN_SHAKE_CHOCOLATE` exhibit a discrete-grid micro-structure: mid mostly walks in small ticks, but occasionally **snaps by ≥ 95 units** to a new level on a 10-unit grid. The snaps mean-revert. The strategy rounds mid to a 10-unit grid, detects a grid jump of ≥ 95, and immediately walks the book to `−sign(jump) × 10` (full short on a big up-snap, full long on a big down-snap). The position is held through `hundred_snap` regime until one small grid move in either direction (the revert), then flattened. Outside the snap regime the strategy reverts to passive market-making (post one tick inside the L1 quotes). A stale-counter (1000 ticks without a jump) forcibly clears the signal so a long-quiet product doesn't carry a leftover position.
+`ROBOT_DISHES`, `ROBOT_IRONING`, `OXYGEN_SHAKE_EVENING_BREATH`, and `OXYGEN_SHAKE_CHOCOLATE` exhibited a discrete-grid micro-structure: mid mostly walks in small ticks, but occasionally it started moving by +-100 positions. This could've been explained by the fact that the mid price was rounded to a point on a 100-wide lattice. By standard martingale reasons this would've implied that after a 100 swing one way the next swing was going to be most likely in the opposite direction. A quick empirical check confirmed this - after the price moved by +- 100 the next move was -+ 100 with 85% chance. The strategy at this point is trivial - whenever you move by +100 sell till full inventory and when it moves by -100, buy till full inventory.
 
 ### Microchips — within-family lead-lag
 
-The Microchip family is the only Round 5 group where a clean integer-lag signal exists between products. Three rules vote into target positions: `CIRCLE` leads `OVAL` and `RECTANGLE`, and `OVAL` leads `TRIANGLE`. Each rule stores a rolling history of the leader's mid; when the leader's value moves by more than `T` over a window of `W` ticks, a `±1` signal is latched on the follower for `H` ticks (or until the leader flips). Parameters `(W, H, T)` are tuned per pair (e.g. `200/200/110` for circle→oval); votes across rules are summed before targeting `±10` or `0`. Same-direction re-fires reset the hold counter so a sustained lead extends the position.
+The Microchip family is the only Round 5 group where a clean integer-lag signal exists between products. Oval, Square, Rectangle and Triangle all followed Circle at a 50, 100, 150 and 200 lag, respectively. The correlation was rather weak - around 0.05. However, when aggregated over multiple steps it could've been a tradeable signal. To our surprise, when aggregating multiple difference, i.e. looking at rectangle_{t+300} - tectangle_{t+150} and circle_{t+150} - circle_t, the correlation jumped to 0.15. This should not happen if there was no other hidden structure for this family. We searched hard for the other systematic pattern, but failed to find it. For unfounded reasons we resorted to overfitting - we aggregated the price difference over larger windows than what was logical (i.e, looked at circle_{t+200} - circle_t to predict rectangle_{t+400} - rectangle_{t+200}) and sweeped for thresholds. Needless to say, we netted an embarassing -25k on microchips as a sector. Nonetheless, this was the most fun asset (class) of all of Prosperity - it really made us think and write down math. I would come back next year just for a round where we get another chance to trade such products.
 
 ### General market making
 
@@ -72,18 +71,25 @@ Every Round 5 product that isn't claimed by the four strategies above gets a bas
 ### Round 3 and 4
 I want to mention that the amount of overfitting reported in discord was actually insane - z-scores, bellinger (?), EMA, blah blah. Before implementing any of these you should have a solid reason. For example, if you take a rolling mean as your "fair price" and plot the residuals you will find that the later was also mean reverting. However, this holds true for almost any time series under the sun :). You would need a more rigorous analysis to claim that a local mean-reversion would be more profitable than a global mean-reversion that would necessarily have to include the stability of the rolling mean. 
 
-You should really think what you are trading here - you are betting that the current price is too high for whatever happened in the past 100 ticks, and that it is going to revert, in say 1000 ticks. Then you are selling now, and then in 1000 ticks you would want to buy back because the rolling mean in 900 ticks will be lower than the price in 1000 ticks? There was no statistics to confirm that. Needless to say, I am not claiming that local-mean reversion is bad, all I am trying to communicate is that there needs to be concrete reasoning and logic to back this up. Better backtest results is not logic, it's just a number :) 
+You should really think what you are trading here - you are betting that the current price is too high for whatever happened in the past 100 ticks, and that it is going to revert, in say 1000 ticks. Then you are selling now, and then in 1000 ticks you would want to buy back because the rolling mean in 900 ticks will be lower than the price in 1000 ticks? Take a step back to think what exactly you are doing. The rolling mean could've drifted as well - what if rolling mean started dropping itself and the 1000th was higher with respect to the rolling mean, but substantial lower than when you bought? If there are no fundamental statistics to confirm that you do not expose yourself to too much movement in the rolling mean then you should just assume overfit if the PnL on backtest is good. 
 
-### Round 5
+Needless to say, I am not claiming that local-mean reversion is bad, all I am trying to communicate is that there needs to be concrete reasoning and logic to back this up. Better backtest results is not logic, it's just a number :) 
 
+### Round 5 
+When I opened discord and saw the reported backtest PnLs I was pleasantly surprised. People were reporting 1.8mln backtests, or even upwards of 2.2mln. In total we had 50 products, sure, but positions were 10 for all of them. This was significantly less positions than what we could've taken in round 3 and 4. 
 
 ## Manual
+To be fair our manual was not the brightest, so we will keep it short.
 
-Phase 2 manual totals (Phase 1 manual was already locked at +305,865 from R1+R2):
+### Round 3 - Crowd +70,684
 
-| Round | Manual PnL |
-|---|---|
-| Round 3 | +70,684 |
-| Round 4 | +65,024 |
-| Round 5 | +104,014 |
-| **Phase 2 total** | **+239,722** |
+### Round 4 - Options +65,024
+We did Markowitz and looked at the PnL graph against the std for various values of the regularizer lambda. Then, we picked the lambda where the derivative started to get smaller - i.e. where we were trading off more PnL for less std. Did not spend too much time on this, hence the rather straightforward and naive strategy. 
+
+***Interesting stuff:*** However, we realized afterwards that this round is amazing. Due to the extreme variance, around 30% of the seeds would've resulted in the most popular (max-EV) solution either ganing or losing 500k. No one who puts this much effort into making a competition as IMC does would let this kind of noise simply randomize the top ranks. Hence, you definitely could've expected that the seed would've been changed once, twice or a few times. This radically changes the outcome of any strategy, especially that you know which "randomness" is the "bad randomness". And I think this aspect is great, because IRL you should never believe someone who tells you that a stock price is a geometric brownian motion. Humans move the price with their actions, just how the mods have the final say on which seed gets used :) 
+
+Also, it's amazing that Manual could've finally been of importance for the general challenge. 
+
+### Round 5 - News +104,014
+For this round just lookup the news from last year that you can find on the internet and try to pattern match. You should be able to recover the movements from most of last years since they are publicly available too. Then assume everyone is already doing that and don't overthink too much - the price moves based on what other contestants do too (don't forget to read the wiki).
+
