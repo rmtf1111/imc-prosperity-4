@@ -92,7 +92,7 @@ Quite astonishing, over 100 pairs that you could arbitrage. Yet, if you take a s
 To be fair our manual was not the brightest, so we will keep it short.
 
 ### Round 3 - Crowd +70,684
-Nathan simulated a bunch of bots for this round to place their own bids and see what would be the best choice afterwards. I believe he initially wanted to go with what would be the optimal numbers, but he changed his mind in the end. 
+Nathan simulated a bunch of bots for this round to place their own bids and see what would be the best choice afterwards. 
 
 ### Round 4 - Options +65,024
 We did Markowitz and looked at the PnL graph against the std for various values of the regularizer lambda. Then, we picked the lambda where the derivative started to get smaller - i.e. where we were trading off more PnL for less std. Did not spend too much time on this, hence the rather straightforward and naive strategy. 
@@ -102,5 +102,5 @@ We did Markowitz and looked at the PnL graph against the std for various values 
 Also, it's amazing that Manual could've finally been of importance for the overall challenge. 
 
 ### Round 5 - News +104,014
-For this round just look up the news from last years that you can find on the internet and try to pattern match. You should be able to recover the movements from most of last years since they are publicly available too. Then assume everyone is already doing that and don't overthink too much - the price moves based on what other contestants do too (don't forget to read the wiki).
+For this round just look up the news bulletins and final movements from last years that you can find on the internet and try to pattern match.  Then assume everyone is already doing that and don't overthink too much - the price moves based on what other contestants do too (don't forget to read the wiki).
 
