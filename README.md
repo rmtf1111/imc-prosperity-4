@@ -75,6 +75,8 @@ You should really think about what you are trading here - you are betting that t
 
 Needless to say, I am not claiming that local mean-reversion is bad, all I am trying to communicate is that there needs to be concrete reasoning and logic to back this up. Better backtest results is not logic, it's just a number :) 
 
+As for thresholds - when you do large sweeps searching for best thresholds, try to aim for those that are in stable regions of PnL. I.e., if you pick say 100 as a threshold, make sure that 99 and 101 could be decent thresholds too. You do not want to pick a threshold that was lucky in-sample but it is in a region where PnL is overall low. If you see a major spike in PnL at 100, but 95-99 and 101-105 thresholds are much lower, then probably the only special thing about 100 is just noise.
+
 ### Round 5 
 When I opened Discord and saw the reported backtest PnLs I was pleasantly surprised. People were reporting 1.8mln backtests, or even upwards of 2.2mln. In total we had 50 products, sure, but positions were 10 for all of them. These were significantly fewer positions than what we could've taken in round 3 and 4. It was clear that everyone was pulling mean-reversion and cointegration out of thin air. And to be fair, if you looked at the graph of some random UV product and then some sleeping-pod, maybe, it looked like you could pairs trade them. And that's totally normal, in fact, in the training sample, I am sure that tens, if not hundreds of pairs exhibited a cointegration pattern. In fact, if you simulate 50 simple random walks over 30,000 steps and check their ADF p-values you will get something like this:
 
@@ -90,11 +92,12 @@ Quite astonishing, over 100 pairs that you could arbitrage. Yet, if you take a s
 To be fair our manual was not the brightest, so we will keep it short.
 
 ### Round 3 - Crowd +70,684
+Nathan simulated a bunch of bots for this round to place their own bids and see what would be the best choice afterwards. I believe he initially wanted to go with what would be the optimal numbers, but he changed his mind in the end. 
 
 ### Round 4 - Options +65,024
 We did Markowitz and looked at the PnL graph against the std for various values of the regularizer lambda. Then, we picked the lambda where the derivative started to get smaller - i.e. where we were trading off more PnL for less std. Did not spend too much time on this, hence the rather straightforward and naive strategy. 
 
-***Interesting stuff:*** However, we realized afterwards that this round is amazing. Due to the extreme variance, around 30% of the seeds would've resulted in the most popular (max-EV) solution either gaining or losing 500k. No one who puts this much effort into making a competition as IMC does would let this kind of noise simply randomize the top ranks. Hence, you definitely could've expected that the seed would've been changed once, twice or a few times till the admins saw an acceptable results distribution. This radically changes the outcome of any strategy, especially that you know which "randomness" is the "bad randomness". And I think this aspect is great, because IRL you should never believe someone who tells you that a stock price is a geometric brownian motion. Humans move the price with their actions, just how the admins have the final say on which seed gets used :) 
+***Interesting stuff:*** However, we realized afterwards that this round is amazing. Due to the extreme variance, around 30% of the seeds would've resulted in the most popular (max-EV) solution either gaining or losing 500k. No one who puts this much effort into making a competition as IMC does would let this kind of noise simply randomize the top ranks. Hence, you definitely could've expected that the seed would've been changed once, twice or a few times till the admins saw an acceptable results distribution. This radically changes the outcome of any strategy, especially that you know which "randomness" is the "bad randomness". And I think this aspect is great, because IRL you should never believe someone who tells you that a stock price is a geometric brownian motion. Humans move the price with their actions, just how the admins have the final say on which seed gets used :)
 
 Also, it's amazing that Manual could've finally been of importance for the overall challenge. 
 
